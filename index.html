@@ -1,49 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ESP32 GPIO Controller</title>
+  <meta charset="UTF-8">
+  <title>Smart Landslide Early Warning System</title>
 
-<link rel="stylesheet" href="styles.css">
-<script type="module" src="app.js"></script>
+  <!-- Mobile Responsive -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
-<div class="card">
+  <div class="container">
+    <h1>🌧️ Smart Landslide Early Warning System</h1>
 
-  <h1>ESP32 GPIO Control</h1>
-  <div id="statusBadge" class="status-badge offline">Offline</div>
+    <div class="grid">
+      <div class="card">
+        <p>Rain Sensor</p>
+        <h2 id="rain">--</h2>
+      </div>
 
-  <!-- Login UI -->
-  <div id="authBox">
-    <input id="emailField" type="email" placeholder="Email" />
-    <input id="passwordField" type="password" placeholder="Password" />
-    <button id="loginBtn" class="btn login-btn">Login</button>
-    <p id="authMsg"></p>
+      <div class="card">
+        <p>Rainfall Height</p>
+        <h2 id="rainHeight">--</h2>
+      </div>
+
+      <div class="card">
+        <p>Soil Condition</p>
+        <h2 id="soil">--</h2>
+      </div>
+    </div>
+
+    <div class="status-card" id="statusCard">
+      <p>Landslide Status</p>
+      <h2 id="status">--</h2>
+    </div>
+
+    <h2>📈 Live Graphs</h2>
+    <canvas id="rainHeightChart"></canvas>
+    <canvas id="rainSensorChart"></canvas>
   </div>
 
-  <!-- Control UI -->
-  <div id="controlBox" style="display:none;">
+  <!-- 🔔 Danger Sound -->
+  <audio id="alertSound" src="alert.mp3"></audio>
 
-    <button id="gpio1Btn" class="gpio-button" data-gpio="gpio1">GPIO 1</button>
-    <div id="gpio1Status" class="gpio-status">Status: OFF</div>
-
-    <button id="gpio2Btn" class="gpio-button" data-gpio="gpio2">GPIO 2</button>
-    <div id="gpio2Status" class="gpio-status">Status: OFF</div>
-
-    <button id="gpio3Btn" class="gpio-button" data-gpio="gpio3">GPIO 3</button>
-    <div id="gpio3Status" class="gpio-status">Status: OFF</div>
-
-    <button id="logoutBtn" class="btn logout-btn">Logout</button>
-  </div>
-
-</div>
-
-<!-- JS + Firebase Integrated -->
-
-
+  <script src="app.js"></script>
 </body>
 </html>

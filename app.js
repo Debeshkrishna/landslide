@@ -1,20 +1,5 @@
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import {
-    getAuth,
-    signInWithEmailAndPassword,
-    onAuthStateChanged,
-    signOut
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-  import {
-    getDatabase,
-    ref,
-    set,
-    onValue
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-  //  Replace With YOUR Firebase Config
-const firebaseConfig = {
-  apiKey: "AIzaSyBdobZkxGjd2jxKX9R_fc3uw8AU6Hknk10",
+// 🔥 Firebase Configuration
+var firebaseConfig = {apiKey: "AIzaSyBdobZkxGjd2jxKX9R_fc3uw8AU6Hknk10",
   authDomain: "landslide-6e594.firebaseapp.com",
   databaseURL: "https://landslide-6e594-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "landslide-6e594",
@@ -24,94 +9,101 @@ const firebaseConfig = {
   measurementId: "G-BFVLY7FGE7"
 };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth();
-  const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
 
-  // UI elements
-  const authBox = document.getElementById("authBox");
-  const controlBox = document.getElementById("controlBox");
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const authMsg = document.getElementById("authMsg");
-  const badge = document.getElementById("statusBadge");
+var database = firebase.database();
+var landslideRef = database.ref("Landslide");
 
-  const gpioButtons = {
-    gpio1: document.getElementById("gpio1Btn"),
-    gpio2: document.getElementById("gpio2Btn"),
-    gpio3: document.getElementById("gpio3Btn")
-  };
+// HTML Elements
+const rainEl = document.getElementById("rain");
+const rainHeightEl = document.getElementById("rainHeight");
+const soilEl = document.getElementById("soil");
+const statusEl = document.getElementById("status");
+const statusCard = document.getElementById("statusCard");
+const alertSound = document.getElementById("alertSound");
 
-  const gpioLabels = {
-    gpio1: document.getElementById("gpio1Status"),
-    gpio2: document.getElementById("gpio2Status"),
-    gpio3: document.getElementById("gpio3Status")
-  };
+// Prevent repeated sound
+let lastStatus = "";
 
-  // Login
-  loginBtn.onclick = async () => {
-    authMsg.textContent = "";
-    try {
-      await signInWithEmailAndPassword(
-        auth,
-        document.getElementById("emailField").value,
-        document.getElementById("passwordField").value
-      );
-    } catch (e) {
-      authMsg.textContent = e.message;
+// Graph Data
+let timeLabels = [];
+let rainHeightData = [];
+let rainSensorData = [];
+
+// Charts
+const rainHeightChart = new Chart(
+  document.getElementById("rainHeightChart"), {
+    type: "line",
+    data: {
+      labels: timeLabels,
+      datasets: [{
+        label: "Rainfall Height (cm)",
+        data: rainHeightData,
+        borderColor: "blue",
+        fill: false
+      }]
     }
-  };
+});
 
-  logoutBtn.onclick = () => signOut(auth);
-
-  // Auth state monitor
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      authBox.style.display = "none";
-      controlBox.style.display = "block";
-      badge.className = "status-badge online";
-      badge.textContent = "Online";
-      startListeners();
-    } else {
-      authBox.style.display = "block";
-      controlBox.style.display = "none";
-      badge.className = "status-badge offline";
-      badge.textContent = "Offline";
+const rainSensorChart = new Chart(
+  document.getElementById("rainSensorChart"), {
+    type: "line",
+    data: {
+      labels: timeLabels,
+      datasets: [{
+        label: "Rain Sensor Value",
+        data: rainSensorData,
+        borderColor: "green",
+        fill: false
+      }]
     }
-  });
+});
 
-  // Listen to DB
-  function startListeners() {
-    ["gpio1", "gpio2", "gpio3"].forEach((key) => {
-      onValue(ref(db, "/" + key), (snapshot) => {
-        let value = snapshot.val() ? 1 : 0;
-        updateUI(key, value);
-      });
-    });
+// Realtime Listener
+landslideRef.on("value", function(snapshot) {
 
-    // Button click
-    Object.values(gpioButtons).forEach((btn) => {
-      btn.onclick = () => {
-        let gpio = btn.dataset.gpio;
-        let newState = btn.classList.contains("on") ? 0 : 1;
-        set(ref(db, "/" + gpio), newState);
-      };
-    });
+  let data = snapshot.val();
+  if (!data) return;
+
+  rainEl.innerHTML = data.RainSensor;
+  rainHeightEl.innerHTML = data.RainfallHeight_cm + " cm";
+  soilEl.innerHTML = data.SoilMoisture == 0 ? "WET" : "DRY";
+  statusEl.innerHTML = data.Status;
+
+  statusCard.className = "status-card";
+
+  // Status logic + sound
+  if (data.Status === "SAFE") {
+    statusCard.classList.add("safe");
   }
 
-  // Update UI
-  function updateUI(key, val) {
-    let btn = gpioButtons[key];
-    let lab = gpioLabels[key];
+  if (data.Status === "WARNING") {
+    statusCard.classList.add("warning");
+  }
 
-    if (val === 1) {
-      btn.classList.add("on");
-      lab.textContent = "Status: ON";
-      lab.style.color = "#9effae";
-    } else {
-      btn.classList.remove("on");
-      lab.textContent = "Status: OFF";
-      lab.style.color = "#d1d1d1";
+  if (data.Status === "DANGER") {
+    statusCard.classList.add("danger");
+
+    if (lastStatus !== "DANGER") {
+      alertSound.play();   // 🔔 PLAY SOUND
     }
   }
+
+  lastStatus = data.Status;
+
+  // Graph update
+  let time = new Date().toLocaleTimeString();
+
+  if (timeLabels.length > 10) {
+    timeLabels.shift();
+    rainHeightData.shift();
+    rainSensorData.shift();
+  }
+
+  timeLabels.push(time);
+  rainHeightData.push(data.RainfallHeight_cm);
+  rainSensorData.push(data.RainSensor);
+
+  rainHeightChart.update();
+  rainSensorChart.update();
+});
