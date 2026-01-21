@@ -1,101 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>Smart Landslide Early Warning System</title>
-
-  <!-- Mobile Responsive -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Firebase -->
+  <title>Smart Warning Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
 <body>
-  <div class="container">
-    <h1>🌧️ Smart Landslide Early Warning System</h1>
-
-    <div class="grid">
-      <div class="card">
-        <p>Rain Sensor</p>
-        <h2 id="rain">--</h2>
-      </div>
-
-      <div class="card">
-        <p>Rainfall Height</p>
-        <h2 id="rainHeight">--</h2>
-      </div>
-
-      <div class="card">
-        <p>Soil Condition</p>
-        <h2 id="soil">--</h2>
-      </div>
-    </div>
-
-    <div class="status-card" id="statusCard">
-      <p>Landslide Status</p>
-      <h2 id="status">--</h2>
-    </div>
-
-<div class="chart-container">
-  <canvas id="rainChart"></canvas>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const ctx = document.getElementById('rainChart').getContext('2d');
-  const rainChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['Jan', 'Feb', 'Mar', 'Apr'],
-      datasets: [{
-        label: 'Rain Height (cm)',
-        data: [25, 40, 55, 70],
-        borderColor: '#e53935',
-        backgroundColor: 'rgba(229,57,53,0.1)' // light red fill
-      }]
-    },
-    options: {
-      plugins: {
-        legend: { labels: { color: '#000' } } // dark text
-      },
-      scales: {
-        x: { ticks: { color: '#000' }, grid: { color: '#ddd' } },
-        y: { ticks: { color: '#000' }, grid: { color: '#ddd' } }
-      }
-    }
-  });
-</script>
-
-<style>
-  .chart-container {
-    background-color: #ffffff; /* white background */
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    margin-top: 20px;
-  }
-</style>
-
-
-
-
-
-    <h2>📈 Live Graphs</h2>
-    <canvas id="rainHeightChart"></canvas>
-    <canvas id="rainSensorChart"></canvas>
+  <!-- Login Form -->
+  <div id="loginBox">
+    <h2>Admin Login</h2>
+    <input type="email" id="email" placeholder="Email"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
   </div>
 
-  <!-- 🔔 Danger Sound -->
-  <audio id="alertSound" src="alert.mp3"></audio>
+  <!-- Dashboard (hidden until login) -->
+  <div id="dashboard" style="display:none;">
+    <h2>Realtime Sensor Dashboard</h2>
+    <canvas id="myChart"></canvas>
+  </div>
 
-  <script src="app.js"></script>
+  <script>
+    // 🔹 Firebase Config
+    var firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    // 🔹 Chart Setup
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Sensor Value',
+          data: [],
+          borderColor: 'black',
+          fill: false
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: false
+      }
+    });
+
+    // 🔹 Dynamic Background Plugin
+    Chart.plugins.register({
+      beforeDraw: function(chart) {
+        const ctx = chart.ctx;
+        let latestValue = chart.data.datasets[0].data.slice(-1)[0];
+        let bgColor = "#ffffff"; // default white
+
+        if (latestValue < 50) {
+          bgColor = "#00ff00"; // Green = Safe
+        } else if (latestValue >= 50 && latestValue < 80) {
+          bgColor = "#ffff00"; // Yellow = Alert
+        } else if (latestValue >= 80) {
+          bgColor = "#ff0000"; // Red = Danger
+        }
+
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, chart.width, chart.height);
+      }
+    });
+
+    // 🔹 Realtime Firebase Listener
+    firebase.database().ref("sensorData").on("value", (snapshot) => {
+      const data = snapshot.val();
+      const value = data.value;
+
+      myChart.data.labels.push(new Date().toLocaleTimeString());
+      myChart.data.datasets[0].data.push(value);
+      myChart.update();
+
+      // Push alerts without login
+      if (value >= 80) {
+        sendDangerAlert(value);
+      } else if (value >= 50) {
+        sendWarningAlert(value);
+      }
+    });
+
+    // 🔹 Push Alerts (example console log, replace with FCM/Telegram)
+    function sendDangerAlert(value) {
+      console.log("🚨 Danger Alert! Value:", value);
+      // Here you’d call FCM or Telegram API
+    }
+
+    function sendWarningAlert(value) {
+      console.log("⚠️ Warning Alert! Value:", value);
+      // Here you’d call FCM or Telegram API
+    }
+
+    // 🔹 Admin Login
+    function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(() => {
+          document.getElementById("loginBox").style.display = "none";
+          document.getElementById("dashboard").style.display = "block";
+        })
+        .catch((error) => {
+          alert("Login failed: " + error.message);
+        });
+    }
+
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        document.getElementById("dashboard").style.display = "block";
+      } else {
+        document.getElementById("dashboard").style.display = "none";
+      }
+    });
+  </script>
 </body>
 </html>
