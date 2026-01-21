@@ -1,13 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Warning Dashboard</title>
+  <!-- Attach external stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase & Chart.js -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <!-- 🔹 Sticky Top Bar -->
+  <header class="topbar">
+    <h1>Smart Warning Dashboard</h1>
+    <button id="logoutBtn" onclick="logout()">Logout</button>
+  </header>
+
   <!-- Login Form -->
   <div id="loginBox">
     <h2>Admin Login</h2>
@@ -16,14 +28,15 @@
     <button onclick="login()">Login</button>
   </div>
 
-  <!-- Dashboard (hidden until login) -->
+  <!-- Dashboard -->
   <div id="dashboard" style="display:none;">
     <h2>Realtime Sensor Dashboard</h2>
     <canvas id="myChart"></canvas>
+    <div id="alertBox" class="alert-log"></div>
   </div>
 
   <script>
-    // 🔹 Firebase Config
+    // Firebase Config
     var firebaseConfig = {
       apiKey: "AIzaSyBdobZkxGjd2jxKX9R_fc3uw8AU6Hknk10",
   authDomain: "landslide-6e594.firebaseapp.com",
@@ -36,7 +49,7 @@
     };
     firebase.initializeApp(firebaseConfig);
 
-    // 🔹 Chart Setup
+    // Chart Setup
     var ctx = document.getElementById('myChart').getContext('2d');
     var myChart = new Chart(ctx, {
       type: 'line',
@@ -55,19 +68,25 @@
       }
     });
 
-    // 🔹 Dynamic Background Plugin
+    // Dynamic Background Plugin
     Chart.plugins.register({
       beforeDraw: function(chart) {
         const ctx = chart.ctx;
         let latestValue = chart.data.datasets[0].data.slice(-1)[0];
-        let bgColor = "#ffffff"; // default white
+        let bgColor = "#ffffff";
 
         if (latestValue < 50) {
-          bgColor = "#00ff00"; // Green = Safe
+          bgColor = "#00ff00"; // Safe
+          document.getElementById("alertBox").className = "alert-log alert-safe";
+          document.getElementById("alertBox").innerText = "✅ Safe Condition";
         } else if (latestValue >= 50 && latestValue < 80) {
-          bgColor = "#ffff00"; // Yellow = Alert
+          bgColor = "#ffff00"; // Alert
+          document.getElementById("alertBox").className = "alert-log alert-warning";
+          document.getElementById("alertBox").innerText = "⚠️ Alert Condition";
         } else if (latestValue >= 80) {
-          bgColor = "#ff0000"; // Red = Danger
+          bgColor = "#ff0000"; // Danger
+          document.getElementById("alertBox").className = "alert-log alert-danger";
+          document.getElementById("alertBox").innerText = "🚨 Danger Condition";
         }
 
         ctx.fillStyle = bgColor;
@@ -75,7 +94,7 @@
       }
     });
 
-    // 🔹 Realtime Firebase Listener
+    // Realtime Firebase Listener
     firebase.database().ref("sensorData").on("value", (snapshot) => {
       const data = snapshot.val();
       const value = data.value;
@@ -92,18 +111,15 @@
       }
     });
 
-    // 🔹 Push Alerts (example console log, replace with FCM/Telegram)
+    // Push Alerts (example console log)
     function sendDangerAlert(value) {
       console.log("🚨 Danger Alert! Value:", value);
-      // Here you’d call FCM or Telegram API
     }
-
     function sendWarningAlert(value) {
       console.log("⚠️ Warning Alert! Value:", value);
-      // Here you’d call FCM or Telegram API
     }
 
-    // 🔹 Admin Login
+    // Admin Login
     function login() {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -112,17 +128,28 @@
         .then(() => {
           document.getElementById("loginBox").style.display = "none";
           document.getElementById("dashboard").style.display = "block";
+          document.querySelector(".topbar").style.display = "flex";
         })
         .catch((error) => {
           alert("Login failed: " + error.message);
         });
     }
 
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        document.getElementById("dashboard").style.display = "none";
+        document.getElementById("loginBox").style.display = "block";
+        document.querySelector(".topbar").style.display = "none";
+      });
+    }
+
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         document.getElementById("dashboard").style.display = "block";
+        document.querySelector(".topbar").style.display = "flex";
       } else {
         document.getElementById("dashboard").style.display = "none";
+        document.querySelector(".topbar").style.display = "none";
       }
     });
   </script>
