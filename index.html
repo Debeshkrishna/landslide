@@ -44,6 +44,50 @@
       <h2 id="status">--</h2>
     </div>
 
+<div class="chart-container">
+  <canvas id="rainChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('rainChart').getContext('2d');
+  const rainChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+      datasets: [{
+        label: 'Rain Height (cm)',
+        data: [25, 40, 55, 70],
+        borderColor: '#e53935',
+        backgroundColor: 'rgba(229,57,53,0.1)' // light red fill
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { labels: { color: '#000' } } // dark text
+      },
+      scales: {
+        x: { ticks: { color: '#000' }, grid: { color: '#ddd' } },
+        y: { ticks: { color: '#000' }, grid: { color: '#ddd' } }
+      }
+    }
+  });
+</script>
+
+<style>
+  .chart-container {
+    background-color: #ffffff; /* white background */
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin-top: 20px;
+  }
+</style>
+
+
+
+
+
     <h2>📈 Live Graphs</h2>
     <canvas id="rainHeightChart"></canvas>
     <canvas id="rainSensorChart"></canvas>
