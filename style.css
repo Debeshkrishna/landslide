@@ -1,128 +1,158 @@
-/* 🌈 Global Styles */
-body {
-  margin: 0;
-  padding: 0;
-  background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-  min-height: 100vh;
-  font-family: "Segoe UI", sans-serif;
+/* Sticky Top Bar */
+.topbar {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  background: #2c3e50;
   color: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  display: none; /* hidden until login */
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  z-index: 1000;
 }
 
-/* Container */
-.container {
-  width: 95%;
-  max-width: 1200px;
-  padding: 20px;
+.topbar h1 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.topbar button {
+  background: #e74c3c;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.topbar button:hover {
+  background: #c0392b;
+}
+/* style.css */
+
+/* General page styling */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f6f9;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+/* Centered container */
+#loginBox, #dashboard {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 25px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 /* Headings */
-h1 {
-  text-align: center;
-  font-size: 2rem;
-  margin-bottom: 20px;
-  text-shadow: 0 2px 6px rgba(0,0,0,0.4);
-}
-
 h2 {
-  margin: 10px 0;
-  font-weight: 600;
-}
-
-/* Grid Cards */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
-  margin-bottom: 25px;
-}
-
-.card, .status-card {
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(12px);
-  border-radius: 16px;
-  padding: 25px;
   text-align: center;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  color: #2c3e50;
+  margin-bottom: 20px;
 }
 
-.card:hover, .status-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+/* Input fields */
+input[type="email"], input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 14px;
 }
 
-/* Status Card Highlight */
-.status-card {
-  border: 2px solid #fff;
+/* Buttons */
+button {
+  width: 100%;
+  padding: 12px;
+  background: #3498db;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
 }
 
-/* Status Colors */
-#status {
-  font-size: 1.6rem;
+button:hover {
+  background: #2980b9;
+}
+
+/* Chart canvas */
+canvas {
+  margin-top: 20px;
+  width: 100% !important;
+  height: 400px !important;
+}
+
+/* Alerts (optional styling for push logs) */
+.alert-log {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 6px;
   font-weight: bold;
 }
-.status-safe { color: #4caf50; }
-.status-warning { color: #ff9800; }
-.status-danger { color: #e53935; }
 
-/* Graphs */
-canvas {
-  width: 100% !important;
-  max-height: 320px;
-  margin: 15px 0;
-  background: rgba(255,255,255,0.08);
-  border-radius: 12px;
-  padding: 10px;
+.alert-safe {
+  background: #e0f7e9;
+  color: #2e7d32;
 }
 
-/* Buttons (if needed) */
-.btn {
-  display: inline-block;
-  width: 100%;
-  padding: 14px;
-  margin-top: 15px;
-  border-radius: 12px;
-  border: none;
-  font-size: 17px;
-  cursor: pointer;
-  color: white;
-  font-weight: 600;
-  background: linear-gradient(135deg, #03a9f4, #0277bd);
-  transition: 0.25s ease;
-  box-shadow: 0 6px 18px rgba(3, 169, 244, 0.35);
-  position: relative;
-  overflow: hidden;
+.alert-warning {
+  background: #fff9c4;
+  color: #f57f17;
 }
 
-.btn:hover {
-  opacity: 0.9;
+.alert-danger {
+  background: #ffebee;
+  color: #c62828;
 }
 
-.btn:active::after {
-  content: "";
-  position: absolute;
-  width: 180%;
-  height: 180%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255,255,255,0.4);
-  border-radius: 50%;
-  animation: ripple 0.5s ease-out;
+/* 🔹 Mobile responsiveness */
+@media (max-width: 768px) {
+  #loginBox, #dashboard {
+    margin: 20px;
+    padding: 20px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  input[type="email"], input[type="password"], button {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  canvas {
+    height: 300px !important;
+  }
 }
 
-/* Ripple animation */
-@keyframes ripple {
-  from { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-  to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
-}
+@media (max-width: 480px) {
+  #loginBox, #dashboard {
+    margin: 10px;
+    padding: 15px;
+  }
 
-/* Responsive */
-@media (max-width: 600px) {
-  h1 { font-size: 1.6rem; }
-  h2 { font-size: 1.2rem; }
-  .card, .status-card { padding: 18px; }
+  h2 {
+    font-size: 18px;
+  }
+
+  input[type="email"], input[type="password"], button {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  canvas {
+    height: 250px !important;
+  }
 }
