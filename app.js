@@ -10,6 +10,23 @@ var firebaseConfig = {apiKey: "AIzaSyBdobZkxGjd2jxKX9R_fc3uw8AU6Hknk10",
 };
 
 firebase.initializeApp(firebaseConfig);
+// Initialize Firebase 
+firebase.initializeApp(firebaseConfig);
+ const auth = firebase.auth(); 
+// Login 
+function login() { const email = document.getElementById("email").value; 
+const password = document.getElementById("password").value; 
+auth.signInWithEmailAndPassword(email, password) .then(() => window.location.href = "index.html") .catch(err => document.getElementById("error").textContent = err.message); } 
+// Signup 
+function signup() { const email = document.getElementById("email").value; const password = document.getElementById("password").value; auth.createUserWithEmailAndPassword(email, password) .then(() => window.location.href = "index.html") .catch(err => document.getElementById("error").textContent = err.message); } 
+// Toggle login/signup 
+function toggleForm() { const formTitle = document.getElementById("form-title"); 
+const loginBtn = document.getElementById("login-btn"); 
+const signupBtn = document.getElementById("signup-btn"); 
+const toggleLink = document.querySelector(".toggle-link"); 
+if (formTitle.textContent === "Login") { formTitle.textContent = "Sign Up"; 
+loginBtn.style.display = "none"; signupBtn.style.display = "block"; 
+toggleLink.textContent = "Already have an account? Login"; } else { formTitle.textContent = "Login"; loginBtn.style.display = "block"; signupBtn.style.display = "none"; toggleLink.textContent = "Don't have an account? Sign up"; } } // Logout function logout() { auth.signOut().then(() => { window.location.href = "login.html"; }); } // Reset Password function resetPassword() { const email = document.getElementById("email").value; const errorDiv = document.getElementById("error"); if (!email) { errorDiv.textContent = "Please enter your email to reset password."; return; } auth.sendPasswordResetEmail(email) .then(() => { alert("Password reset email sent! Check your inbox."); }) .catch(err => { errorDiv.textContent = err.message; }); }
 
 var database = firebase.database();
 var landslideRef = database.ref("Landslide");
@@ -122,3 +139,4 @@ function logout() { auth.signOut().then(() => { window.location.href = "login.ht
 if (document.getElementById("myChart")) { var ctx = document.getElementById('myChart').getContext('2d'); var myChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [{ label: 'Sensor Value', data: [], borderColor: 'black', fill: false }] }, options: { responsive: true, animation: false } }); db.ref("sensorData").on("value", snapshot => { const data = snapshot.val(); const value = data.value; myChart.data.labels.push(new Date().toLocaleTimeString()); myChart.data.datasets[0].data.push(value); myChart.update(); }); }
 
  
+
