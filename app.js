@@ -107,3 +107,18 @@ landslideRef.on("value", function(snapshot) {
   rainHeightChart.update();
   rainSensorChart.update();
 });
+  const auth = firebase.auth(); const db = firebase.database(); 
+// Auth state check
+auth.onAuthStateChanged(user => { const dashboard = document.getElementById("dashboard"); const loading = document.getElementById("loading"); if (user) { if (loading) loading.style.display = "none"; if (dashboard) dashboard.style.display = "flex"; } else { if (window.location.pathname.includes("index.html")) { window.location.href = "login.html"; } } }); 
+// Login 
+function login() { const email = document.getElementById("email").value; const password = document.getElementById("password").value; auth.signInWithEmailAndPassword(email, password) .then(() => window.location.href = "index.html") .catch(err => document.getElementById("error").textContent = err.message); } 
+// Signup 
+function signup() { const email = document.getElementById("email").value; const password = document.getElementById("password").value; auth.createUserWithEmailAndPassword(email, password) .then(() => window.location.href = "index.html") .catch(err => document.getElementById("error").textContent = err.message); } 
+// Toggle login/signup 
+function toggleForm() { const formTitle = document.getElementById("form-title"); const loginBtn = document.getElementById("login-btn"); const signupBtn = document.getElementById("signup-btn"); const toggleLink = document.querySelector(".toggle-link"); if (formTitle.textContent === "Login") { formTitle.textContent = "Sign Up"; loginBtn.style.display = "none"; signupBtn.style.display = "block"; toggleLink.textContent = "Already have an account? Login"; } else { formTitle.textContent = "Login"; loginBtn.style.display = "block"; signupBtn.style.display = "none"; toggleLink.textContent = "Don't have an account? Sign up"; } } 
+// Logout 
+function logout() { auth.signOut().then(() => { window.location.href = "login.html"; }); } 
+// Chart (only on dashboard) 
+if (document.getElementById("myChart")) { var ctx = document.getElementById('myChart').getContext('2d'); var myChart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [{ label: 'Sensor Value', data: [], borderColor: 'black', fill: false }] }, options: { responsive: true, animation: false } }); db.ref("sensorData").on("value", snapshot => { const data = snapshot.val(); const value = data.value; myChart.data.labels.push(new Date().toLocaleTimeString()); myChart.data.datasets[0].data.push(value); myChart.update(); }); }
+
+ 
