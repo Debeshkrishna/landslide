@@ -1,3 +1,30 @@
+ <!DOCTYPE html>
+<html>
+<head>
+  
+<body>
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
+
+  <script>
+    // Firebase config
+     
+
+    
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +39,49 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    /* Dashboard container */
+    .dashboard {
+      display: none; /* hidden until auth check passes */
+      flex-direction: column;
+      min-height: 100vh;
+      justify-content: space-between;
+      padding: 20px;
+    }
+
+    .content {
+      flex: 1;
+    }
+
+    /* Logout button styling */
+    .logout-btn {
+      align-self: center;
+      width: 120px;   /* reduced width */
+      padding: 10px;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    .logout-btn:hover {
+      background-color: #c0392b;
+    }
+
+    /* Loading screen */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-size: 18px;
+      color: #555;
+    }
+  </style>
+ 
+
 </head>
 <body>
   <!-- 🔹 Sticky Top Bar -->
@@ -22,18 +92,25 @@
 
   <!-- Login Form -->
   <div id="loginBox">
+    <link rel="stylesheet" href="styles.css">
     <h2>Admin Login</h2>
     <input type="email" id="email" placeholder="Email"><br>
     <input type="password" id="password" placeholder="Password"><br>
     <button onclick="login()">Login</button>
   </div>
 
-  <!-- Dashboard -->
-  <div id="dashboard" style="display:none;">
-    <h2>Realtime Sensor Dashboard</h2>
-    <canvas id="myChart"></canvas>
-    <div id="alertBox" class="alert-log"></div>
+  <!-- Loading message -->
+  <div class="loading" id="loading">Checking authentication...</div>
+
+  <!-- Dashboard content -->
+  <div class="dashboard" id="dashboard">
+    <div class="content">
+      <h1>Smart Warning Dashboard</h1>
+      <p>Sensor data, charts, etc...</p>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
+
 
   <script>
     // Firebase Config
@@ -47,8 +124,36 @@
   appId: "1:239694825638:web:fc02999b4ce51b26a8cc67",
   measurementId: "G-BFVLY7FGE7"
     };
-    firebase.initializeApp(firebaseConfig);
+     
+// Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
+    // Auth state check
+    auth.onAuthStateChanged(user => {
+      const dashboard = document.getElementById("dashboard");
+      const loading = document.getElementById("loading");
+
+      if (user) {
+        // Authenticated → show dashboard
+        loading.style.display = "none";
+        dashboard.style.display = "flex";
+      } else {
+        // Not authenticated → redirect
+        window.location.href = "login.html";
+      }
+    });
+
+    // Logout function
+    function logout() {
+      auth.signOut().then(() => {
+        alert("Logged out successfully!");
+        window.location.href = "login.html";
+      }).catch(error => {
+        console.error("Logout Error:", error);
+      });
+    }
+  
     // Chart Setup
     var ctx = document.getElementById('myChart').getContext('2d');
     var myChart = new Chart(ctx, {
@@ -155,3 +260,4 @@
   </script>
 </body>
 </html>
+
