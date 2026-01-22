@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard - Landslide Alerts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+    .card { background: #fff; padding: 20px; margin: 10px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+    select, button { padding: 8px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>⚙️ Admin Dashboard</h1>
+  <div id="userList"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Load users
+    db.ref("users").on("value", snapshot => {
+      const users = snapshot.val();
+      const userList = document.getElementById("userList");
+      userList.innerHTML = "";
+
+      for (let uid in users) {
+        const user = users[uid];
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${user.name}</h3>
+          <p>Current Location: ${user.location}</p>
+          <select id="loc_${uid}">
+            <option value="hillsideA">Hillside A</option>
+            <option value="villageB">Village B</option>
+            <option value="cityC">City C</option>
+          </select>
+          <button onclick="updateLocation('${uid}')">Update</button>
+        `;
+        userList.appendChild(card);
+      }
+    });
+
+    // Update user location
+    function updateLocation(uid) {
+      const newLoc = document.getElementById("loc_" + uid).value;
+      db.ref("users/" + uid + "/location").set(newLoc);
+      alert("Location updated for " + uid + " → " + newLoc);
+    }
+  </script>
+</body>
+</html>

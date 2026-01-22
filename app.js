@@ -9,82 +9,101 @@ var firebaseConfig = {apiKey: "AIzaSyBdobZkxGjd2jxKX9R_fc3uw8AU6Hknk10",
   measurementId: "G-BFVLY7FGE7"
 };
 
-// Initialize Firebase (keep config unchanged)
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 
-// --- LOGIN ---
-window.login = function () {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const errorDiv = document.getElementById("error");
+var database = firebase.database();
+var landslideRef = database.ref("Landslide");
 
-  auth.signInWithEmailAndPassword(email, password)
-    .then(() => {
-      window.location.href = "index.html"; // redirect to dashboard
-    })
-    .catch(err => {
-      if (errorDiv) errorDiv.textContent = err.message;
-    });
-};
+// HTML Elements
+const rainEl = document.getElementById("rain");
+const rainHeightEl = document.getElementById("rainHeight");
+const soilEl = document.getElementById("soil");
+const statusEl = document.getElementById("status");
+const statusCard = document.getElementById("statusCard");
+const alertSound = document.getElementById("alertSound");
 
-// --- SIGNUP ---
-window.signup = function () {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const errorDiv = document.getElementById("error");
+// Prevent repeated sound
+let lastStatus = "";
 
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(() => {
-      window.location.href = "index.html";
-    })
-    .catch(err => {
-      if (errorDiv) errorDiv.textContent = err.message;
-    });
-};
+// Graph Data
+let timeLabels = [];
+let rainHeightData = [];
+let rainSensorData = [];
 
-// --- TOGGLE LOGIN/SIGNUP ---
-window.toggleForm = function () {
-  const formTitle = document.getElementById("form-title");
-  const loginBtn = document.getElementById("login-btn");
-  const signupBtn = document.getElementById("signup-btn");
-  const toggleLink = document.querySelector(".toggle-link");
+// Charts
+const rainHeightChart = new Chart(
+  document.getElementById("rainHeightChart"), {
+    type: "line",
+    data: {
+      labels: timeLabels,
+      datasets: [{
+        label: "Rainfall Height (cm)",
+        data: rainHeightData,
+        borderColor: "blue",
+        fill: false
+      }]
+    }
+});
 
-  if (formTitle.textContent === "Login") {
-    formTitle.textContent = "Sign Up";
-    if (loginBtn) loginBtn.style.display = "none";
-    if (signupBtn) signupBtn.style.display = "block";
-    if (toggleLink) toggleLink.textContent = "Already have an account? Login";
-  } else {
-    formTitle.textContent = "Login";
-    if (loginBtn) loginBtn.style.display = "block";
-    if (signupBtn) signupBtn.style.display = "none";
-    if (toggleLink) toggleLink.textContent = "Don't have an account? Sign up";
-  }
-};
+const rainSensorChart = new Chart(
+  document.getElementById("rainSensorChart"), {
+    type: "line",
+    data: {
+      labels: timeLabels,
+      datasets: [{
+        label: "Rain Sensor Value",
+        data: rainSensorData,
+        borderColor: "green",
+        fill: false
+      }]
+    }
+});
 
-// --- LOGOUT ---
-window.logout = function () {
-  auth.signOut().then(() => {
-    window.location.href = "login.html";
-  });
-};
+// Realtime Listener
+landslideRef.on("value", function(snapshot) {
 
-// --- RESET PASSWORD ---
-window.resetPassword = function () {
-  const email = document.getElementById("email").value;
-  const errorDiv = document.getElementById("error");
+  let data = snapshot.val();
+  if (!data) return;
 
-  if (!email) {
-    if (errorDiv) errorDiv.textContent = "Please enter your email to reset password.";
-    return;
+  rainEl.innerHTML = data.RainSensor;
+  rainHeightEl.innerHTML = data.RainfallHeight_cm + " cm";
+  soilEl.innerHTML = data.SoilMoisture == 0 ? "WET" : "DRY";
+  statusEl.innerHTML = data.Status;
+
+  statusCard.className = "status-card";
+
+  // Status logic + sound
+  if (data.Status === "SAFE") {
+    statusCard.classList.add("safe");
   }
 
-  auth.sendPasswordResetEmail(email)
-    .then(() => {
-      alert("Password reset email sent! Check your inbox.");
-    })
-    .catch(err => {
-      if (errorDiv) errorDiv.textContent = err.message;
-    });
-};
+  if (data.Status === "WARNING") {
+    statusCard.classList.add("warning");
+  }
+
+  if (data.Status === "DANGER") {
+    statusCard.classList.add("danger");
+
+    if (lastStatus !== "DANGER") {
+      alertSound.play();   // 🔔 PLAY SOUND
+    }
+  }
+
+  lastStatus = data.Status;
+
+  // Graph update
+  let time = new Date().toLocaleTimeString();
+
+  if (timeLabels.length > 10) {
+    timeLabels.shift();
+    rainHeightData.shift();
+    rainSensorData.shift();
+  }
+
+  timeLabels.push(time);
+  rainHeightData.push(data.RainfallHeight_cm);
+  rainSensorData.push(data.RainSensor);
+
+  rainHeightChart.update();
+  rainSensorChart.update();
+});
