@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -233,8 +234,38 @@
       }
     });
   </script>
- <button id="logoutBtn" onclick="logout()">Logout</button>
-</body>
+ <div class="dashboard" id="dashboard">
+  <div class="content">
+    <h2>Sensor Data</h2>
+    <canvas id="myChart"></canvas>
+    <div id="alertBox"></div>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel">
+      <h3>Preferences</h3>
+      <label>
+        Theme:
+        <select id="themeSelect">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
+      <label>
+        Chart Line Color:
+        <select id="chartColorSelect">
+          <option value="black">Black</option>
+          <option value="blue">Blue</option>
+          <option value="green">Green</option>
+          <option value="red">Red</option>
+        </select>
+      </label>
+      <button onclick="saveSettings()">Save Settings</button>
+      <button class="reset-btn" onclick="resetToDefault()">Reset to Default</button>
+    </div>
+  </div>
+
+   
+
 </html>
 
 
