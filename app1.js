@@ -1,4 +1,16 @@
-
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import {
+    getDatabase,
+    ref,
+    set,
+    onValue
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
     // Firebase Config
     var firebaseConfig = {
       apiKey: "AIzaSyBdobZkxGjd2jxKX9R_fc3uw8AU6Hknk10",
@@ -115,4 +127,5 @@
         document.querySelector(".topbar").style.display = "none";
       }
     });
+
   
