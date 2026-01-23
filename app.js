@@ -1,5 +1,20 @@
-// 🔥 Firebase Configuration
-var firebaseConfig = {apiKey: "AIzaSyBdobZkxGjd2jxKX9R_fc3uw8AU6Hknk10",
+// Import Firebase SDKs
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import {
+  getDatabase,
+  ref,
+  onValue
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyBdobZkxGjd2jxKX9R_fc3uw8AU6Hknk10",
   authDomain: "landslide-6e594.firebaseapp.com",
   databaseURL: "https://landslide-6e594-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "landslide-6e594",
@@ -9,101 +24,114 @@ var firebaseConfig = {apiKey: "AIzaSyBdobZkxGjd2jxKX9R_fc3uw8AU6Hknk10",
   measurementId: "G-BFVLY7FGE7"
 };
 
-firebase.initializeApp(firebaseConfig);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
 
-var database = firebase.database();
-var landslideRef = database.ref("Landslide");
-
-// HTML Elements
-const rainEl = document.getElementById("rain");
-const rainHeightEl = document.getElementById("rainHeight");
-const soilEl = document.getElementById("soil");
-const statusEl = document.getElementById("status");
-const statusCard = document.getElementById("statusCard");
-const alertSound = document.getElementById("alertSound");
-
-// Prevent repeated sound
-let lastStatus = "";
-
-// Graph Data
-let timeLabels = [];
-let rainHeightData = [];
-let rainSensorData = [];
-
-// Charts
-const rainHeightChart = new Chart(
-  document.getElementById("rainHeightChart"), {
-    type: "line",
-    data: {
-      labels: timeLabels,
-      datasets: [{
-        label: "Rainfall Height (cm)",
-        data: rainHeightData,
-        borderColor: "blue",
-        fill: false
-      }]
-    }
+// Chart Setup
+const ctx = document.getElementById('myChart').getContext('2d');
+const myChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Sensor Value',
+      data: [],
+      borderColor: 'black',
+      fill: false
+    }]
+  },
+  options: {
+    responsive: true,
+    animation: false
+  }
 });
 
-const rainSensorChart = new Chart(
-  document.getElementById("rainSensorChart"), {
-    type: "line",
-    data: {
-      labels: timeLabels,
-      datasets: [{
-        label: "Rain Sensor Value",
-        data: rainSensorData,
-        borderColor: "green",
-        fill: false
-      }]
+// Dynamic Background Plugin
+Chart.plugins.register({
+  beforeDraw: function(chart) {
+    const ctx = chart.ctx;
+    let latestValue = chart.data.datasets[0].data.slice(-1)[0];
+    let bgColor = "#ffffff";
+
+    if (latestValue < 50) {
+      bgColor = "#00ff00"; // Safe
+      document.getElementById("alertBox").className = "alert-log alert-safe";
+      document.getElementById("alertBox").innerText = "✅ Safe Condition";
+    } else if (latestValue >= 50 && latestValue < 80) {
+      bgColor = "#ffff00"; // Alert
+      document.getElementById("alertBox").className = "alert-log alert-warning";
+      document.getElementById("alertBox").innerText = "⚠️ Alert Condition";
+    } else if (latestValue >= 80) {
+      bgColor = "#ff0000"; // Danger
+      document.getElementById("alertBox").className = "alert-log alert-danger";
+      document.getElementById("alertBox").innerText = "🚨 Danger Condition";
     }
+
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, chart.width, chart.height);
+  }
 });
 
-// Realtime Listener
-landslideRef.on("value", function(snapshot) {
+// Realtime Firebase Listener
+onValue(ref(db, "sensorData"), (snapshot) => {
+  const data = snapshot.val();
+  const value = data.value;
 
-  let data = snapshot.val();
-  if (!data) return;
+  myChart.data.labels.push(new Date().toLocaleTimeString());
+  myChart.data.datasets[0].data.push(value);
+  myChart.update();
 
-  rainEl.innerHTML = data.RainSensor;
-  rainHeightEl.innerHTML = data.RainfallHeight_cm + " cm";
-  soilEl.innerHTML = data.SoilMoisture == 0 ? "WET" : "DRY";
-  statusEl.innerHTML = data.Status;
-
-  statusCard.className = "status-card";
-
-  // Status logic + sound
-  if (data.Status === "SAFE") {
-    statusCard.classList.add("safe");
+  // Alerts
+  if (value >= 80) {
+    sendDangerAlert(value);
+  } else if (value >= 50) {
+    sendWarningAlert(value);
   }
+});
 
-  if (data.Status === "WARNING") {
-    statusCard.classList.add("warning");
+// Push Alerts (example console log)
+function sendDangerAlert(value) {
+  console.log("🚨 Danger Alert! Value:", value);
+}
+function sendWarningAlert(value) {
+  console.log("⚠️ Warning Alert! Value:", value);
+}
+
+// Admin Login
+export function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+      document.querySelector(".topbar").style.display = "flex";
+    })
+    .catch((error) => {
+      alert("Login failed: " + error.message);
+    });
+}
+
+// Logout
+export function logout() {
+  signOut(auth).then(() => {
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
+    document.querySelector(".topbar").style.display = "none";
+  });
+}
+
+// Auth State Listener
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById("dashboard").style.display = "block";
+    document.querySelector(".topbar").style.display = "flex";
+  } else {
+    document.getElementById("dashboard").style.display = "none";
+    document.querySelector(".topbar").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
   }
-
-  if (data.Status === "DANGER") {
-    statusCard.classList.add("danger");
-
-    if (lastStatus !== "DANGER") {
-      alertSound.play();   // 🔔 PLAY SOUND
-    }
-  }
-
-  lastStatus = data.Status;
-
-  // Graph update
-  let time = new Date().toLocaleTimeString();
-
-  if (timeLabels.length > 10) {
-    timeLabels.shift();
-    rainHeightData.shift();
-    rainSensorData.shift();
-  }
-
-  timeLabels.push(time);
-  rainHeightData.push(data.RainfallHeight_cm);
-  rainSensorData.push(data.RainSensor);
-
-  rainHeightChart.update();
-  rainSensorChart.update();
 });
