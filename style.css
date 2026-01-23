@@ -5,15 +5,16 @@
   width: 100%;
   background: #2c3e50;
   color: #fff;
-  display: none; /* hidden until login */
+  //display: none; /* hidden until login */
   justify-content: space-between;
-  align-items: center;
+  
   padding: 10px 20px;
   z-index: 1000;
 }
 
 .topbar h1 {
-  font-size: 18px;
+  font-size: 28px;
+  align-items: center;
   margin: 0;
 }
 
@@ -23,6 +24,7 @@
   padding: 8px 14px;
   border-radius: 6px;
   color: #fff;
+  align-items: center;
   cursor: pointer;
   font-size: 14px;
 }
@@ -43,7 +45,7 @@ body {
 
 /* Centered container */
 #loginBox, #dashboard {
-  max-width: 600px;
+  max-width: 400px;
   margin: 40px auto;
   padding: 25px;
   background: #fff;
@@ -60,7 +62,7 @@ h2 {
 
 /* Input fields */
 input[type="email"], input[type="password"] {
-  width: 100%;
+  width: 90%;
   padding: 12px;
   margin: 8px 0;
   border: 1px solid #ccc;
@@ -71,7 +73,7 @@ input[type="email"], input[type="password"] {
 
 /* Buttons */
 button {
-  width: 100%;
+  width: 90%;
   padding: 12px;
   background: #3498db;
   color: #fff;
